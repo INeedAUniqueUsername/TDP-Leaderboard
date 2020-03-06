@@ -26,7 +26,7 @@ http.createServer(function (req, res) {
     res.end(JSON.stringify(response));
   }
   const u = url.parse(req.url, true);
-  if (u.pathname == '/submit-score' && req.method === 'GET') {
+  if (u.pathname == '/submit-score' && req.method === 'POST') {
     let level = u.query.level;
     if (!level) {
       reject('Invalid level ' + level);
