@@ -434,28 +434,29 @@ class Game {
 
     let v = (!!keys[controls.left] ^ !!keys[controls.right]) + (!!keys[controls.up] ^ !!keys[controls.down]) > 1 ? 0.7071067811865476 : 1;
 
+    let abs = Math.abs;
     if (keys[controls.up]) {
       player.vy -= v * player.a * (player.mx / (player.rest + abs(player.vy)));
       if (!this.spinning && this.spin) {
-        player.vy -= v * player.a * spin * player.sb;
+        player.vy -= v * player.a * this.spin * player.sb;
       }
     }
     if (keys[controls.down]) {
       player.vy += v * player.a * (player.mx / (player.rest + abs(player.vy)));
       if (!this.spinning && this.spin) {
-        player.vy += v * player.a * spin * player.sb;
+        player.vy += v * player.a * this.spin * player.sb;
       }
     }
     if (keys[controls.left]) {
       player.vx -= v * player.a * (player.mx / (player.rest + abs(player.vx)));
       if (!this.spinning && this.spin) {
-        player.vx -= v * player.a * spin * player.sb;
+        player.vx -= v * player.a * this.spin * player.sb;
       }
     }
     if (keys[controls.right]) {
       player.vx += v * player.a * (player.mx / (player.rest + abs(player.vx)));
       if (!this.spinning && this.spin) {
-        player.vx += v * player.a * spin * player.sb;
+        player.vx += v * player.a * this.spin * player.sb;
       }
     }
     if (keys[controls.jump] && !this.jump) {
@@ -552,11 +553,11 @@ class Game {
           let m = Math.sqrt(player.vx * player.vx + player.vy * player.vy);
           player.vx = cos(theta) * m;
           player.vy = sin(theta) * m;
-          if (spinning) {
-            player.vx *= 1 + 0.01 * spin;
-            player.vy *= 1 + 0.01 * spin;
-            spinning = false;
-            spin = 0;
+          if (this.spinning) {
+            player.vx *= 1 + 0.01 * this.spin;
+            player.vy *= 1 + 0.01 * this.spin;
+            this.spinning = false;
+            this.spin = 0;
           }
         }
       }
