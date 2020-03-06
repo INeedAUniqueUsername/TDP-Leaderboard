@@ -1,0 +1,9 @@
+{
+  "name": "tdp-leaderboard",
+  "version": "0.0.0",
+  "description": "TDP-Leaderboard",
+  "main": "server.js",
+  "author": {
+    "name": ""
+  }
+}
