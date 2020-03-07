@@ -6,6 +6,7 @@ const url = require('url');
 const fs = require('fs');
 const maps = require('./maps.js');
 const Game = require('./game.js');
+const Leaderboard = require('./Leaderboard.js');
 function binarySearchRight(array, value) {
   let index = Math.floor(array.length / 2);
   let jump = Math.floor(1 + index / 2);
@@ -34,41 +35,43 @@ function binarySearchRight(array, value) {
   }
   return index;
 }
-
-class Leaderboard {
-  constructor(recordsByLevel) {
-    this.recordsByLevel = recordsByLevel || {};
-  }
-  addRecord(level, record) {
-    let levelRecord = this.recordsByLevel[level];
-    if (levelRecord.length === 0) {
-      levelRecord.push(record);
-      return 0;
-    } else {
-      let times = levelRecord.map(r => r.time)
-      let index = binarySearchRight(times, record.time);
-      if (index === times.length) {
-        levelRecord.push(record);
-      } else {
-        levelRecord.splice(index, 0, record);
-      }
-      return index;
-    }
-  }
-}
 class Record {
   constructor(username, replayString, time) {
     this.username = username;
+    this.level = level;
     this.replayString = replayString;
     this.time = time;
   }
 }
 let leaderboard = new Leaderboard();
-if (fs.existsSync('./records.js')) {
-  leaderboard = new Leaderboard(JSON.parse(require('./records.js')));
+if (fs.existsSync('./records.json')) {
+  leaderboard = new Leaderboard(JSON.parse(fs.readFileSync('./records.json')));
 } else {
   Object.keys(maps).forEach(title => leaderboard.recordsByLevel[title] = []);
 }
+let dataChanged = false;
+let backupInterval = 1000 * 60;
+function backup() {
+  if (dataChanged) {
+    function name(i) {
+      return './records' + i + '.json';
+    }
+    function rename(f1, f2) {
+      if (fs.existsSync(f1)) {
+        fs.renameSync(f1, f2);
+      }
+
+    }
+    for (let i = 4; i > -1; i--) {
+      rename(name(i), name(i + 1));
+    }
+    rename('./records.json', name(0));
+    fs.writeFileSync('./records.json', JSON.stringify(leaderboard.recordsByLevel));
+  }
+  setTimeout(backup, backupInterval);
+}
+setTimeout(backup, backupInterval);
+
 http.createServer(function (req, res) {
   function reject(reply) {
     res.statusCode = 404;
@@ -123,6 +126,7 @@ http.createServer(function (req, res) {
       index: index,
       time: time
     }));
+    dataChanged = true;
   } else if (u.pathname == '/top-ten' && req.method === 'GET') {
     let level = u.query.level;
     if (!level) {
