@@ -73,18 +73,40 @@ function backup() {
 setTimeout(backup, backupInterval);
 
 http.createServer(function (req, res) {
-  function reject(reply) {
+
+  function reject(response) {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/plain');
-    res.end(reply || 'Invalid Request');
+    response = response || 'Invalid Request'
+    res.end(response);
+    console.log('Response sent: ' + response);
   };
   function accept(response) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(response));
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    response = JSON.stringify(response);
+    res.end(response);
+    console.log('Response sent: ' + response);
   }
   const u = url.parse(req.url, true);
-  if (u.pathname == '/submit-score' && req.method === 'POST') {
+  console.log('Request received: ' + req.method + ' ' + req.url);
+
+  https://gist.github.com/nilcolor/816580
+  if (req.method === 'OPTIONS') {
+    console.log('!OPTIONS');
+    var headers = {};
+    // IE8 does not allow domains to be specified, just the *
+    // headers["Access-Control-Allow-Origin"] = req.headers.origin;
+    headers["Access-Control-Allow-Origin"] = "*";
+    headers["Access-Control-Allow-Methods"] = "POST, GET, PUT, DELETE, OPTIONS";
+    headers["Access-Control-Allow-Credentials"] = false;
+    headers["Access-Control-Max-Age"] = '86400'; // 24 hours
+    headers["Access-Control-Allow-Headers"] = "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept";
+    res.writeHead(200, headers);
+    res.end();
+  } else if (u.pathname == '/submit-score' && req.method === 'POST') {
     let level = u.query.level;
     if (!level) {
       reject('Invalid level ' + level);
