@@ -31,9 +31,6 @@
     <Content Include="game.js">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="Leaderboard.js">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="maps.js">
       <SubType>Code</SubType>
     </Content>
