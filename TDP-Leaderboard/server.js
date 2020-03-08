@@ -47,6 +47,7 @@ class Leaderboard {
     return levelIndex;
   }
 }
+
 function binarySearchRight(array, value) {
   let index = Math.floor(array.length / 2);
   let jump = Math.floor(1 + index / 2);
@@ -165,39 +166,47 @@ http.createServer(function (req, res) {
       reject('Invalid username ' + username);
       return;
     }
+    let replayString = '';
+    try {
+      req.on('data', chunk => {
+        replayString += chunk.toString(); // convert Buffer to string
+      });
+      req.on('end', submit);
+      console.log('Reading data');
 
-    let replayString = u.query.replayString;
-    if (!replayString) {
-      reject('Invalid replay string ' + replayString);
-      return;
-    }
+      function submit() {
+        console.log('Running simulation');
 
-    let g = new Game(map, replayString);
-    let frames = 0;
-    while (!g.finish && frames < 1000) {
-      g.stepPlayer();
-      frames++;
-    }
-    if (!g.finish) {
-      reject('Replay does not finish within the time limit');
-      return;
-    }
-    let time = g.timer;
+        let g = new Game(map, replayString);
+        let frames = 0;
+        while (!g.finish && frames < 1000) {
+          g.stepPlayer();
+          frames++;
+        }
+        if (!g.finish) {
+          reject('Replay does not finish within the time limit');
+          return;
+        }
+        let time = g.timer;
 
-    let levelIndex = leaderboard.addRecord(new Record({
-      username: username,
-      level: level,
-      replayString: replayString,
-      time: time,
-      frames: frames
-    }));
-    accept(JSON.stringify({
-      accepted: true,
-      levelIndex: levelIndex,
-      time: time,
-      frames: frames
-    }));
-    dataChanged = true;
+        let levelIndex = leaderboard.addRecord(new Record({
+          username: username,
+          level: level,
+          replayString: replayString,
+          time: time,
+          frames: frames
+        }));
+        accept(JSON.stringify({
+          accepted: true,
+          levelIndex: levelIndex,
+          time: time,
+          frames: frames
+        }));
+        dataChanged = true;
+      }
+    } catch (e) {
+      reject('Invalid replay data: ' + replayString);
+    }
   } else if (u.pathname == '/top-ten' && req.method === 'GET') {
     let level = u.query.level;
     if (!level) {
