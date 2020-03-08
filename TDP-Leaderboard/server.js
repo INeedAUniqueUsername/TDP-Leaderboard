@@ -113,7 +113,7 @@ if (fs.existsSync('./records.json')) {
   leaderboard = new Leaderboard(JSON.parse(fs.readFileSync('./records.json')));
 }
 let dataChanged = false;
-let backupInterval = 1000 * 60;
+let backupInterval = 1000 * 60 * 5;
 function backup() {
   if (dataChanged) {
     function name(i) {
@@ -211,18 +211,20 @@ http.createServer(function (req, res) {
         }
         let time = g.timer;
 
-        let levelIndex = leaderboard.addRecord(new Record({
+        let record = new Record({
           username: username,
           level: level,
           replayData: replayData,
           time: time,
           frames: frames
-        }));
+        });
+        let levelIndex = leaderboard.addRecord(record);
         accept(JSON.stringify({
           accepted: true,
           levelIndex: levelIndex,
           time: time,
-          frames: frames
+          frames: frames,
+          id: record.id
         }));
         dataChanged = true;
       }
@@ -282,3 +284,4 @@ http.createServer(function (req, res) {
     reject();
   }
 }).listen(port);
+console.log('TDP leaderboard running');
