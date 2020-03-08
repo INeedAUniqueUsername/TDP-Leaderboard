@@ -546,6 +546,7 @@ class Game {
           player.x = collision.x + v.x * player.d / 2;
           player.y = collision.y + v.y * player.d / 2;
 
+          let atan2 = Math.atan2;
           let theta1 = atan2(player.vy, player.vx);
           let theta2 = atan2(-v.y, -v.x) + Math.PI / 2;
           let theta = theta2 - (theta1 - theta2);
