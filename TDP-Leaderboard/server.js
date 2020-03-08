@@ -47,7 +47,29 @@ class Leaderboard {
     return levelIndex;
   }
 }
-
+function compress(replayData) {
+  //replayData is in array-of-arrays form
+  //Convert it to array of strings form
+  return [...Array(replayData.length).keys()].map(index => {
+    //We use indexes because the array is sparse
+    let controlState = replayData[index];
+    console.log(controlState);
+    if (controlState != null) {
+      return controlState.map(pressed => pressed === true ? '1' : pressed === '0' ? false : 'X').join('');
+    } else {
+      return 0;
+    }
+  });
+}
+function decompress(replayData) {
+  return JSON.parse(replayData).map(controlState => {
+    if (controlState) {
+      return controlState.split('').map(c => c === '1' ? true : c === '0' ? false : null);
+    } else {
+      return null;
+    }
+  });
+}
 function binarySearchRight(array, value) {
   let index = Math.floor(array.length / 2);
   let jump = Math.floor(1 + index / 2);
@@ -80,7 +102,7 @@ class Record {
   constructor(from) {
     this.username = from.username;
     this.level = from.level;
-    this.replayString = from.replayString;
+    this.replayData = from.replayData;
     this.time = from.time;
     this.frames = from.frames;
     this.id = from.id || crypto.randomBytes(16).toString('hex');
@@ -91,7 +113,7 @@ if (fs.existsSync('./records.json')) {
   leaderboard = new Leaderboard(JSON.parse(fs.readFileSync('./records.json')));
 }
 let dataChanged = false;
-let backupInterval = 1000 * 60 / 60;
+let backupInterval = 1000 * 60;
 function backup() {
   if (dataChanged) {
     function name(i) {
@@ -166,10 +188,10 @@ http.createServer(function (req, res) {
       reject('Invalid username ' + username);
       return;
     }
-    let replayString = '';
+    let replayData = '';
     try {
       req.on('data', chunk => {
-        replayString += chunk.toString(); // convert Buffer to string
+        replayData += chunk.toString(); // convert Buffer to string
       });
       req.on('end', submit);
       console.log('Reading data');
@@ -177,7 +199,7 @@ http.createServer(function (req, res) {
       function submit() {
         console.log('Running simulation');
 
-        let g = new Game(map, replayString);
+        let g = new Game(map, decompress(replayData));
         let frames = 0;
         while (!g.finish && frames < 1000) {
           g.stepPlayer();
@@ -192,7 +214,7 @@ http.createServer(function (req, res) {
         let levelIndex = leaderboard.addRecord(new Record({
           username: username,
           level: level,
-          replayString: replayString,
+          replayData: replayData,
           time: time,
           frames: frames
         }));
@@ -205,7 +227,7 @@ http.createServer(function (req, res) {
         dataChanged = true;
       }
     } catch (e) {
-      reject('Invalid replay data: ' + replayString);
+      reject('Invalid replay data: ' + replayData);
     }
   } else if (u.pathname == '/top-ten' && req.method === 'GET') {
     let level = u.query.level;

@@ -1,6 +1,6 @@
 ﻿
 class Game {
-  constructor(levelMap, replayString) {
+  constructor(levelMap, replayData) {
     this.div = {
       floor: [],
       rail: [],
@@ -60,7 +60,7 @@ class Game {
     this.finish = false;
 
     this.setup();
-    this.setupReplay(levelMap, replayString);
+    this.setupReplay(levelMap, replayData);
   }
   
   maxFromRow(row) {
@@ -342,7 +342,7 @@ class Game {
   }
   setup() {
   }
-  setupReplay(levelMap, replayString) {
+  setupReplay(levelMap, replayData) {
     let keys = this.keys;
     let controls = this.controls;
     keys[controls.up] = false;
@@ -352,7 +352,7 @@ class Game {
 
     this.lastInputChangeFrame = 0;
     this.frame = 0;
-    this.replayControlState = JSON.parse(replayString)
+    this.replayControlState = replayData;
 
     this.timer = 0;
     this.startedTime = false;
